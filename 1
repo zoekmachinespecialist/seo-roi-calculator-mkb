@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO ROI calculator (Embed-vriendelijk)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Scoped body styles for the context of the calculator, if absolutely needed outside the container, though generally better to avoid */
+        /* For example, if the calculator is the only thing on a blank test page: */
+        /*
+        body.calculator-embed-page { 
+            font-family: 'Ambit', 'Syne', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 1rem 0; 
+        }
+        */
+
+        #roi-calculator-container {
+            font-family: 'Ambit', 'Syne', sans-serif; /* Font family applied directly to the container */
+            width: 60vw; 
+            height: 90vh; 
+            max-width: 900px; 
+            min-width: 350px; 
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem 2rem; 
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Custom scrollbar for calculator container */
+        #roi-calculator-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #roi-calculator-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #roi-calculator-container::-webkit-scrollbar-thumb {
+            background: #ff8a00;
+            border-radius: 10px;
+        }
+        #roi-calculator-container::-webkit-scrollbar-thumb:hover {
+            background: #e07b00;
+        }
+
+        #roi-calculator-container .input-label-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem; 
+        }
+
+        #roi-calculator-container .input-label {
+            font-size: 0.875rem; 
+            color: #4A5568; 
+            display: block;
+            font-weight: 600; 
+        }
+        #roi-calculator-container .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem; 
+            border: 1px solid #CBD5E0; 
+            border-radius: 8px;
+            font-size: 1rem; 
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            font-family: 'Ambit', 'Syne', sans-serif; 
+        }
+        #roi-calculator-container .input-field:focus {
+            border-color: #ff8a00;
+            box-shadow: 0 0 0 3px rgba(255, 138, 0, 0.3);
+            outline: none;
+        }
+        #roi-calculator-container .base-button { 
+            color: white;
+            font-weight: 700; 
+            padding: 0.65rem 1.25rem; 
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            font-size: 0.9rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+        }
+        #roi-calculator-container .calculate-button {
+            background-color: #ff8a00;
+            width: 100%;
+            margin-top: 1rem; 
+        }
+        #roi-calculator-container .calculate-button:hover {
+            background-color: #e07b00;
+        }
+        #roi-calculator-container .gemini-button { 
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+            margin-top: 0.5rem;
+        }
+        #roi-calculator-container .gemini-button-keyword { 
+            background-color: #02feb5; 
+            color: #0f172a; 
+        }
+        #roi-calculator-container .gemini-button-keyword:hover {
+            background-color: #02d8a0; 
+        }
+        #roi-calculator-container .gemini-button-roi { 
+             background-color: #4A5568; 
+        }
+        #roi-calculator-container .gemini-button-roi:hover {
+             background-color: #2D3748; 
+        }
+
+        #roi-calculator-container .results-container {
+            margin-top: 1.5rem; 
+            padding: 1.5rem; 
+            background-color: #FFF7ED;
+            border-radius: 8px;
+            border: 1px solid #FFE4C2;
+        }
+        #roi-calculator-container .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #FFE4C2;
+            font-size: 0.95rem;
+        }
+        #roi-calculator-container .result-item:last-child {
+            border-bottom: none;
+        }
+        #roi-calculator-container .result-label {
+            color: #4A5568;
+        }
+        #roi-calculator-container .result-value {
+            font-weight: 700;
+            color: #2D3748;
+        }
+        #roi-calculator-container .result-value.roi {
+            color: #ff8a00;
+            font-size: 1.1rem;
+        }
+        
+        #roi-calculator-container .tooltip-icon {
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            margin-left: 0.5rem; 
+            width: 1.25rem; 
+            height: 1.25rem; 
+            background-color: #E2E8F0; 
+            color: #4A5568; 
+            border-radius: 50%;
+            font-size: 0.875rem; 
+            font-weight: bold;
+            cursor: help;
+            position: relative; 
+            line-height: 1.25rem; 
+            text-align: center;
+        }
+        #roi-calculator-container .tooltip-text {
+            visibility: hidden;
+            width: 290px; 
+            background-color: #2D3748; 
+            color: #fff;
+            text-align: left; 
+            border-radius: 6px;
+            padding: 10px 14px; 
+            position: absolute;
+            z-index: 10;
+            top: 130%; 
+            left: 50%;
+            margin-left: -145px; 
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            font-size: 0.8rem; 
+            line-height: 1.5; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-weight: 400; 
+        }
+
+        #roi-calculator-container .tooltip-icon:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        #roi-calculator-container .tooltip-text::after {
+            content: "";
+            position: absolute;
+            bottom: 100%; 
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #2D3748 transparent; 
+        }
+        #roi-calculator-container .loading-indicator, 
+        #roi-calculator-container .gemini-response {
+            font-size: 0.85rem;
+            color: #4A5568;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb; 
+            border-radius: 6px;
+            border: 1px dashed #e5e7eb; 
+        }
+        #roi-calculator-container .gemini-response ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+
+        /* Styles for the custom alert, ensuring they are scoped if possible, or very specific */
+        /* If #customAlertModal is appended to body, scoping with #roi-calculator-container won't work for the modal itself */
+        /* However, its contents can reference the calculator's font if the modal is created by the calculator's script. */
+        #customAlertModal { /* This ID is global if appended to body */
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; 
+        }
+         #customAlertModalContent { /* Give the content a specific ID to style */
+            font-family: 'Ambit', 'Syne', sans-serif; 
+            background-color: white;
+            padding: 25px; 
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            min-width: 300px; 
+            max-width: 90%; 
+        }
+        #customAlertModalContent p {
+            margin-bottom: 20px; 
+            font-size: 1rem; 
+            color: #333; 
+        }
+        #customAlertModalContent button {
+            padding: 10px 20px;
+            background-color: #ff8a00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: 'Ambit', 'Syne', sans-serif;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div id="roi-calculator-container">
+        <h1 class="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6 text-gray-800" style="font-weight: 700;">SEO ROI calculator</h1>
+        
+        <form id="roiForm" class="space-y-4">
+            <div>
+                <div class="input-label-container">
+                    <label for="zoekvolume" class="input-label">Totaal maandelijks zoekvolume (alle belangrijke zoekwoorden)</label>
+                    <span class="tooltip-icon">?
+                        <span class="tooltip-text">Tel het zoekvolume op van de belangrijkste zoekwoorden waarop jouw MKB-bedrijf gevonden wil worden. Dit geeft een schatting van je totale potentiële bereik. Gebruik de AI-knop hieronder om zoekwoordideeën op te doen. Neem contact met ons op voor een live indicatie.</span>
+                    </span>
+                </div>
+                <input type="number" id="zoekvolume" class="input-field" placeholder="Bijvoorbeeld 2500 (totaal)">
+                <input type="text" id="basisZoekwoord" class="input-field mt-2" placeholder="Bijvoorbeeld 'advocaat Breda' of 'biologische supermarkt online'">
+                <button type="button" id="getKeywordsBtn" class="base-button gemini-button gemini-button-keyword">💡 Zoekwoord idee</button>
+                <div id="keywordLoading" class="loading-indicator hidden">Laden van zoekwoord ideeën...</div>
+                <div id="keywordSuggestions" class="gemini-response hidden"></div>
+            </div>
+
+            <div>
+                <div class="input-label-container">
+                    <label for="ctr" class="input-label">Gemiddelde click-through rate (CTR) (%)</label>
+                    <span class="tooltip-icon">?
+                        <span class="tooltip-text">Stel, 100 mensen zien jouw bedrijf in Google. Hoeveel klikken er dan door naar je website? Een gemiddelde CTR voor MKB ligt vaak tussen 1% en 5%. Vul hier jouw schatting in (bijvoorbeeld 3 voor 3%).</span>
+                    </span>
+                </div>
+                <input type="number" id="ctr" step="1" class="input-field" placeholder="Bijvoorbeeld 3" required>
+            </div>
+
+            <div>
+                <div class="input-label-container">
+                    <label for="conversieratio" class="input-label">Gemiddelde conversieratio website (%)</label>
+                    <span class="tooltip-icon">?
+                        <span class="tooltip-text">Van de 100 bezoekers op je website, hoeveel worden er daadwerkelijk klant of vragen een offerte aan? Dit is je conversieratio. Voor MKB is 1% tot 5% een gangbaar percentage. Vul 2 in voor 2%.</span>
+                    </span>
+                </div>
+                <input type="number" id="conversieratio" step="1" class="input-field" placeholder="Bijvoorbeeld 2" required>
+            </div>
+
+            <div>
+                <div class="input-label-container">
+                    <label for="klantwaarde" class="input-label">Gemiddelde waarde van een klant (€)</label>
+                    <span class="tooltip-icon">?
+                        <span class="tooltip-text">Wat is de gemiddelde omzet die één nieuwe klant jou oplevert over een bepaalde periode (bijvoorbeeld een jaar)? Dit kan €50 zijn voor een kleine dienst of €10.000+ voor een groot project.</span>
+                    </span>
+                </div>
+                <input type="number" id="klantwaarde" step="0.01" class="input-field" placeholder="Bijvoorbeeld 750" required>
+            </div>
+
+            <div>
+                <div class="input-label-container">
+                    <label for="seoInvestering" class="input-label">Geschatte maandelijkse SEO investering (€)</label>
+                    <span class="tooltip-icon">?
+                        <span class="tooltip-text">Hoeveel ben je van plan maandelijks te investeren in SEO (zoekmachineoptimalisatie)? Voor een klein lokaal bedrijf kan dit starten vanaf €250-€500, voor grotere MKB-bedrijven of in competitieve markten kan dit €1000-€5000+ zijn.</span>
+                    </span>
+                </div>
+                <input type="number" id="seoInvestering" step="0.01" class="input-field" placeholder="Bijvoorbeeld 500" required>
+            </div>
+
+            <button type="button" id="calculateBtn" class="base-button calculate-button">Bereken ROI</button>
+        </form>
+
+        <div id="results" class="results-container hidden mt-4"> 
+            <h2 class="text-xl font-semibold text-gray-700 mb-3" style="font-weight: 700;">Geschatte resultaten:</h2>
+            <div class="result-item">
+                <span class="result-label">Geschatte maandelijkse bezoekers via SEO:</span>
+                <span id="resBezoekers" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Geschatte maandelijkse nieuwe klanten via SEO:</span>
+                <span id="resKlanten" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Geschatte maandelijkse omzet via SEO:</span>
+                <span id="resOmzet" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Netto winst/verlies via SEO:</span>
+                <span id="resWinst" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Return on investment (ROI):</span>
+                <span id="resROI" class="result-value roi"></span>
+            </div>
+            <button type="button" id="interpretROIBtn" class="base-button gemini-button gemini-button-roi mt-3 w-full">💡 Interpreteer ROI resultaat</button>
+            <div id="roiInterpretationLoading" class="loading-indicator hidden">Laden van ROI interpretatie...</div>
+            <div id="roiInterpretation" class="gemini-response hidden"></div>
+        </div>
+    </div>
+
+    <script>
+    (function() { // Start of IIFE to encapsulate the script
+
+        // Tooltip initialization
+        const tooltipIcons = document.querySelectorAll('#roi-calculator-container .tooltip-icon'); // Scoped selector
+        tooltipIcons.forEach(icon => {
+            const tooltipText = icon.querySelector('.tooltip-text'); // Already scoped by icon
+            if (tooltipText) {
+                icon.addEventListener('mouseenter', () => {
+                    tooltipText.style.visibility = 'visible';
+                    tooltipText.style.opacity = '1';
+                });
+                icon.addEventListener('mouseleave', () => {
+                    tooltipText.style.visibility = 'hidden';
+                    tooltipText.style.opacity = '0';
+                });
+            }
+        });
+        
+        // Custom Alert Modal
+        function showCustomAlert(message) {
+            let modal = document.getElementById('customAlertModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'customAlertModal';
+                
+                const modalContent = document.createElement('div');
+                modalContent.id = 'customAlertModalContent'; // Added ID for styling
+
+                const modalMessage = document.createElement('p');
+                // modalMessage.id = 'customAlertMessage'; // Not strictly needed if only one message p
+                modalMessage.textContent = message;
+
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'OK';
+                closeButton.onclick = function() {
+                    modal.style.display = 'none';
+                };
+
+                modalContent.appendChild(modalMessage);
+                modalContent.appendChild(closeButton);
+                modal.appendChild(modalContent);
+                // It's generally better to append the modal to the calculator container itself if possible,
+                // or to the body if it needs to overlay everything.
+                // If appended to body, its styles are global unless very specific.
+                document.body.appendChild(modal);
+            }
+            // If modal exists, just update message and display
+            const existingModalMessage = modal.querySelector('#customAlertModalContent p');
+            if(existingModalMessage) existingModalMessage.textContent = message;
+            modal.style.display = 'flex';
+        }
+
+        // Gemini API call helper function
+        async function callGeminiAPI(prompt) {
+            // WARNING: Hardcoding API keys in client-side code is a major security risk.
+            const apiKey = "AIzaSyBJfJf3jb87FwpLrmCU0y3kkDZ2MjnL75U"; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("API Error Response Body:", errorBody);
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0 && result.candidates[0].content.parts[0].text) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error("Unexpected API response structure or empty text:", result);
+                    throw new Error("Kon geen geldige tekst genereren van de API.");
+                }
+            } catch (error) {
+                console.error("Fout bij het aanroepen van de Gemini API:", error);
+                throw error; 
+            }
+        }
+
+        // DOM Elements (get them once if they are static within the IIFE's scope)
+        const roiCalculatorNode = document.getElementById('roi-calculator-container'); // Get the main container
+        
+        const getKeywordsBtn = roiCalculatorNode.querySelector('#getKeywordsBtn');
+        const basisZoekwoordInput = roiCalculatorNode.querySelector('#basisZoekwoord');
+        const keywordLoading = roiCalculatorNode.querySelector('#keywordLoading');
+        const keywordSuggestionsDiv = roiCalculatorNode.querySelector('#keywordSuggestions');
+        
+        const calculateBtn = roiCalculatorNode.querySelector('#calculateBtn');
+        const zoekvolumeInput = roiCalculatorNode.querySelector('#zoekvolume');
+        const ctrInput = roiCalculatorNode.querySelector('#ctr');
+        const conversieratioInput = roiCalculatorNode.querySelector('#conversieratio');
+        const klantwaardeInput = roiCalculatorNode.querySelector('#klantwaarde');
+        const seoInvesteringInput = roiCalculatorNode.querySelector('#seoInvestering');
+
+        const resultsDiv = roiCalculatorNode.querySelector('#results');
+        const resBezoekersSpan = roiCalculatorNode.querySelector('#resBezoekers');
+        const resKlantenSpan = roiCalculatorNode.querySelector('#resKlanten');
+        const resOmzetSpan = roiCalculatorNode.querySelector('#resOmzet');
+        const resWinstSpan = roiCalculatorNode.querySelector('#resWinst');
+        const resROISpan = roiCalculatorNode.querySelector('#resROI');
+
+        const interpretROIBtn = roiCalculatorNode.querySelector('#interpretROIBtn');
+        const roiInterpretationLoading = roiCalculatorNode.querySelector('#roiInterpretationLoading');
+        const roiInterpretationDiv = roiCalculatorNode.querySelector('#roiInterpretation');
+
+
+        // Feature 1: Keyword Suggestions
+        if (getKeywordsBtn) {
+            getKeywordsBtn.addEventListener('click', async () => {
+                const basisZoekwoord = basisZoekwoordInput.value.trim();
+                let promptText = "Geef mij 5 zoekwoord ideeën, geschikt voor een Nederlands MKB-bedrijf. Denk aan een mix van algemene en meer specifieke (long-tail) termen. Geef alleen de lijst met zoekwoorden, genummerd (bijvoorbeeld 1. zoekwoord a\n2. zoekwoord b)."; 
+                if (basisZoekwoord) {
+                    promptText = `Geef mij 5 zoekwoord ideeën, specifiek voor een Nederlands MKB-bedrijf dat zich richt op "${basisZoekwoord}". Denk aan lokale relevantie (indien van toepassing voor het zoekwoord) en een mix van algemene en specifieke (long-tail) termen. Geef alleen de lijst met zoekwoorden, genummerd (bijvoorbeeld 1. zoekwoord a\n2. zoekwoord b).`; 
+                }
+
+                keywordLoading.classList.remove('hidden');
+                keywordSuggestionsDiv.classList.add('hidden');
+                keywordSuggestionsDiv.innerHTML = '';
+
+                try {
+                    const suggestionsText = await callGeminiAPI(promptText);
+                    const suggestionsArray = suggestionsText.split('\n').map(s => s.replace(/^\d+\.\s*/, '').trim()).filter(s => s);
+                    if (suggestionsArray.length > 0) {
+                        const ul = document.createElement('ul');
+                        suggestionsArray.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = item;
+                            ul.appendChild(li);
+                        });
+                        keywordSuggestionsDiv.appendChild(ul);
+                    } else {
+                        keywordSuggestionsDiv.textContent = suggestionsText;
+                    }
+                    keywordSuggestionsDiv.classList.remove('hidden');
+                } catch (error) {
+                    console.error("Fout in getKeywordsBtn:", error); 
+                    if (error.message === "Kon geen geldige tekst genereren van de API.") {
+                        keywordSuggestionsDiv.textContent = "De AI gaf een onverwacht antwoord. Controleer de console voor details.";
+                    } else if (error.message.includes("API request failed")) { 
+                         keywordSuggestionsDiv.textContent = `Communicatie met de AI is mislukt. Controleer de console voor details. (${error.message}) `;
+                    } else {
+                        keywordSuggestionsDiv.textContent = "Fout bij het ophalen van zoekwoord ideeën. Probeer het later opnieuw. Controleer de console voor technische details.";
+                    }
+                    keywordSuggestionsDiv.classList.remove('hidden');
+                } finally {
+                    keywordLoading.classList.add('hidden');
+                }
+            });
+        }
+
+        // ROI Calculation Logic
+        if (calculateBtn) {
+            calculateBtn.addEventListener('click', function() {
+                const zoekvolume = parseFloat(zoekvolumeInput.value) || 0; 
+                const ctr = parseFloat(ctrInput.value);
+                const conversieratio = parseFloat(conversieratioInput.value);
+                const klantwaarde = parseFloat(klantwaardeInput.value);
+                const seoInvestering = parseFloat(seoInvesteringInput.value);
+                
+                if (isNaN(ctr) || isNaN(conversieratio) || isNaN(klantwaarde) || isNaN(seoInvestering)) {
+                    showCustomAlert('Vul alsjeblieft geldige getallen in voor CTR, conversieratio, klantwaarde en SEO investering.'); 
+                    return;
+                }
+                 if (zoekvolume < 0 || ctr < 0 || conversieratio < 0 || klantwaarde < 0 || seoInvestering < 0) {
+                    showCustomAlert('Waarden kunnen niet negatief zijn.');
+                    return;
+                }
+                if (ctr > 100 || conversieratio > 100) {
+                    showCustomAlert('CTR en conversieratio percentages kunnen niet hoger zijn dan 100%.'); 
+                    return;
+                }
+
+                const aantalBezoekers = zoekvolume * (ctr / 100);
+                const aantalKlanten = aantalBezoekers * (conversieratio / 100);
+                const geschatteOmzet = aantalKlanten * klantwaarde;
+                const nettoWinst = geschatteOmzet - seoInvestering;
+                
+                let roiPercentageText = "N/A";
+                if (seoInvestering > 0) {
+                    const roi = (nettoWinst / seoInvestering) * 100;
+                    roiPercentageText = roi.toFixed(2) + '%';
+                } else if (nettoWinst > 0) {
+                    roiPercentageText = "∞ (Investering is €0)";
+                } else {
+                    roiPercentageText = "N/A (Investering is €0)";
+                }
+
+                resBezoekersSpan.textContent = aantalBezoekers.toFixed(0);
+                resKlantenSpan.textContent = aantalKlanten.toFixed(2);
+                resOmzetSpan.textContent = '€' + geschatteOmzet.toFixed(2);
+                resWinstSpan.textContent = '€' + nettoWinst.toFixed(2);
+                resROISpan.textContent = roiPercentageText;
+
+                resultsDiv.classList.remove('hidden');
+                roiInterpretationLoading.classList.add('hidden');
+                roiInterpretationDiv.classList.add('hidden');
+                roiInterpretationDiv.innerHTML = '';
+            });
+        }
+
+        // Feature 2: ROI Interpretation
+        if (interpretROIBtn) {
+            interpretROIBtn.addEventListener('click', async () => {
+                const roiText = resROISpan.textContent;
+                const seoInvestering = parseFloat(seoInvesteringInput.value);
+                const basisZoekwoord = basisZoekwoordInput.value.trim() || "hun bedrijf"; 
+
+                if (roiText === "N/A" || isNaN(seoInvestering)) {
+                    showCustomAlert("Bereken eerst de ROI voordat je een interpretatie kunt krijgen.");
+                    return;
+                }
+                
+                const promptText = `Mijn berekende SEO ROI voor een Nederlands MKB-bedrijf (gericht op "${basisZoekwoord}") is ${roiText} met een maandelijkse investering van €${seoInvestering.toFixed(2)}. Geef een korte, motiverende interpretatie van dit resultaat voor de MKB-ondernemer en één praktisch, laagdrempelig advies voor een volgende stap om de online zichtbaarheid te verbeteren. Houd het beknopt (max 70 woorden), professioneel en spreek de ondernemer direct aan.`;
+
+                roiInterpretationLoading.classList.remove('hidden');
+                roiInterpretationDiv.classList.add('hidden');
+                roiInterpretationDiv.innerHTML = '';
+
+                try {
+                    const interpretationText = await callGeminiAPI(promptText);
+                    roiInterpretationDiv.textContent = interpretationText;
+                    roiInterpretationDiv.classList.remove('hidden');
+                } catch (error) {
+                    console.error("Fout in interpretROIBtn:", error); 
+                    if (error.message === "Kon geen geldige tekst genereren van de API.") {
+                        roiInterpretationDiv.textContent = "De AI gaf een onverwacht antwoord. Controleer de console voor details.";
+                    } else if (error.message.includes("API request failed")) {
+                         roiInterpretationDiv.textContent = `Communicatie met de AI is mislukt. Controleer de console voor details. (${error.message})`;
+                    }
+                    else {
+                        roiInterpretationDiv.textContent = "Fout bij het ophalen van de ROI interpretatie. Probeer het later opnieuw. Controleer de console voor technische details.";
+                    }
+                    roiInterpretationDiv.classList.remove('hidden');
+                } finally {
+                    roiInterpretationLoading.classList.add('hidden');
+                }
+            });
+        }
+
+    })(); // End of IIFE
+    </script>
+</body>
+</html>
