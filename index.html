@@ -36,23 +36,23 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f0f2f5;
+            background-color: #e9e9e9; /* Lichte achtergrond voor contrast als container transparant is */
             margin: 0;
-            padding: 1rem 0; 
+            padding: 1rem 0; /* Behoud wat padding voor de body voor standalone weergave */
         }
         #roi-calculator-container {
-            font-family: 'Ambit', 'Syne', sans-serif; /* Font family hier voorrang */
+            font-family: 'Ambit', 'Syne', sans-serif; 
             width: 60vw; 
-            height: 65vh; /* Aangepaste hoogte */
+            height: 95vh; 
             max-width: 900px; 
             min-width: 350px; 
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            background-color: transparent; /* Achtergrond transparant gemaakt */
+            /* box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Schaduw kan storend zijn met transparante bg */
             padding: 1.5rem 2rem; 
-            overflow-y: auto; /* Scrollen indien content niet past */
+            overflow-y: auto; 
             display: flex;
             flex-direction: column;
+            box-sizing: border-box; 
         }
         /* Custom scrollbar */
         #roi-calculator-container::-webkit-scrollbar {
@@ -69,6 +69,20 @@
         #roi-calculator-container::-webkit-scrollbar-thumb:hover {
             background: #e07b00;
         }
+
+        /* Styling voor de formulier elementen en resultaten zodat ze leesbaar zijn op een mogelijk variërende achtergrond */
+        #roi-calculator-container .content-wrapper { /* Nieuwe klasse voor formulier en resultaten secties */
+            background-color: rgba(255, 255, 255, 0.92); /* Licht transparant wit voor leesbaarheid */
+            padding: 1.5rem; /* Padding binnen de wrapper */
+            border-radius: 8px;
+            margin-bottom: 1.5rem; /* Ruimte tussen secties */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07); /* Subtiele schaduw voor diepte */
+        }
+        #roi-calculator-container .results-container { /* Buitenste container voor resultaten, geen bg hier meer */
+            margin-top: 1.5rem; 
+            padding: 0; /* Padding wordt nu door .content-wrapper gedaan */
+        }
+
 
         #roi-calculator-container .input-label-container {
             display: flex;
@@ -134,19 +148,13 @@
         #roi-calculator-container .gemini-button-roi:hover {
              background-color: #2D3748; 
         }
-
-        #roi-calculator-container .results-container {
-            margin-top: 1.5rem; 
-            padding: 1.5rem; 
-            background-color: #FFF7ED;
-            border-radius: 8px;
-            border: 1px solid #FFE4C2;
-        }
+        
+        /* .results-container-inner is nu .content-wrapper voor resultaten */
         #roi-calculator-container .result-item {
             display: flex;
             justify-content: space-between;
             padding: 0.75rem 0;
-            border-bottom: 1px solid #FFE4C2;
+            border-bottom: 1px solid #E2E8F0; /* Iets lichtere border */
             font-size: 0.95rem;
         }
         #roi-calculator-container .result-item:last-child {
@@ -273,91 +281,93 @@
 </head>
 <body>
     <div id="roi-calculator-container">
-        <h1 class="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6 text-gray-800" style="font-weight: 700;">SEO ROI calculator</h1>
-        
-        <form id="roiForm" class="space-y-4">
-            <div>
-                <div class="input-label-container">
-                    <label for="zoekvolume" class="input-label">Totaal maandelijks zoekvolume (alle belangrijke zoekwoorden)</label>
-                    <span class="tooltip-icon">?
-                        <span class="tooltip-text">Tel het zoekvolume op van de belangrijkste zoekwoorden waarop jouw MKB-bedrijf gevonden wil worden. Dit geeft een schatting van je totale potentiële bereik. Gebruik de AI-knop hieronder om zoekwoordideeën op te doen. Neem contact met ons op voor een live indicatie.</span>
-                    </span>
+        <div class="content-wrapper"> <h2 class="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6 text-gray-800" style="font-weight: 700;">SEO ROI calculator</h2>
+            
+            <form id="roiForm" class="space-y-4">
+                <div>
+                    <div class="input-label-container">
+                        <label for="zoekvolume" class="input-label">Totaal maandelijks zoekvolume (alle belangrijke zoekwoorden)</label>
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Tel het zoekvolume op van de belangrijkste zoekwoorden waarop jouw MKB-bedrijf gevonden wil worden. Dit geeft een schatting van je totale potentiële bereik. Gebruik de AI-knop hieronder om zoekwoordideeën op te doen. Neem contact met ons op voor een live indicatie.</span>
+                        </span>
+                    </div>
+                    <input type="number" id="zoekvolume" class="input-field" placeholder="Bijvoorbeeld 2500 (totaal)">
+                    <input type="text" id="basisZoekwoord" class="input-field mt-2" placeholder="Bijvoorbeeld 'advocaat Breda' of 'biologische supermarkt online'">
+                    <button type="button" id="getKeywordsBtn" class="base-button gemini-button gemini-button-keyword">💡 Zoekwoord idee</button>
+                    <div id="keywordLoading" class="loading-indicator hidden">Laden van zoekwoord ideeën...</div>
+                    <div id="keywordSuggestions" class="gemini-response hidden"></div>
                 </div>
-                <input type="number" id="zoekvolume" class="input-field" placeholder="Bijvoorbeeld 2500 (totaal)">
-                <input type="text" id="basisZoekwoord" class="input-field mt-2" placeholder="Bijvoorbeeld 'advocaat Breda' of 'biologische supermarkt online'">
-                <button type="button" id="getKeywordsBtn" class="base-button gemini-button gemini-button-keyword">💡 Zoekwoord idee</button>
-                <div id="keywordLoading" class="loading-indicator hidden">Laden van zoekwoord ideeën...</div>
-                <div id="keywordSuggestions" class="gemini-response hidden"></div>
-            </div>
 
-            <div>
-                <div class="input-label-container">
-                    <label for="ctr" class="input-label">Gemiddelde click-through rate (CTR) (%)</label>
-                    <span class="tooltip-icon">?
-                        <span class="tooltip-text">Stel, 100 mensen zien jouw bedrijf in Google. Hoeveel klikken er dan door naar je website? Een gemiddelde CTR voor MKB ligt vaak tussen 1% en 5%. Vul hier jouw schatting in (bijvoorbeeld 3 voor 3%).</span>
-                    </span>
+                <div>
+                    <div class="input-label-container">
+                        <label for="ctr" class="input-label">Gemiddelde click-through rate (CTR) (%)</label>
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Stel, 100 mensen zien jouw bedrijf in Google. Hoeveel klikken er dan door naar je website? Een gemiddelde CTR voor MKB ligt vaak tussen 1% en 5%. Vul hier jouw schatting in (bijvoorbeeld 3 voor 3%).</span>
+                        </span>
+                    </div>
+                    <input type="number" id="ctr" step="1" class="input-field" placeholder="Bijvoorbeeld 3" required>
                 </div>
-                <input type="number" id="ctr" step="1" class="input-field" placeholder="Bijvoorbeeld 3" required>
-            </div>
 
-            <div>
-                <div class="input-label-container">
-                    <label for="conversieratio" class="input-label">Gemiddelde conversieratio website (%)</label>
-                    <span class="tooltip-icon">?
-                        <span class="tooltip-text">Van de 100 bezoekers op je website, hoeveel worden er daadwerkelijk klant of vragen een offerte aan? Dit is je conversieratio. Voor MKB is 1% tot 5% een gangbaar percentage. Vul 2 in voor 2%.</span>
-                    </span>
+                <div>
+                    <div class="input-label-container">
+                        <label for="conversieratio" class="input-label">Gemiddelde conversieratio website (%)</label>
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Van de 100 bezoekers op je website, hoeveel worden er daadwerkelijk klant of vragen een offerte aan? Dit is je conversieratio. Voor MKB is 1% tot 5% een gangbaar percentage. Vul 2 in voor 2%.</span>
+                        </span>
+                    </div>
+                    <input type="number" id="conversieratio" step="1" class="input-field" placeholder="Bijvoorbeeld 2" required>
                 </div>
-                <input type="number" id="conversieratio" step="1" class="input-field" placeholder="Bijvoorbeeld 2" required>
-            </div>
 
-            <div>
-                <div class="input-label-container">
-                    <label for="klantwaarde" class="input-label">Gemiddelde waarde van een klant (€)</label>
-                    <span class="tooltip-icon">?
-                        <span class="tooltip-text">Wat is de gemiddelde omzet die één nieuwe klant jou oplevert over een bepaalde periode (bijvoorbeeld een jaar)? Dit kan €50 zijn voor een kleine dienst of €10.000+ voor een groot project.</span>
-                    </span>
+                <div>
+                    <div class="input-label-container">
+                        <label for="klantwaarde" class="input-label">Gemiddelde waarde van een klant (€)</label>
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Wat is de gemiddelde omzet die één nieuwe klant jou oplevert over een bepaalde periode (bijvoorbeeld een jaar)? Dit kan €50 zijn voor een kleine dienst of €10.000+ voor een groot project.</span>
+                        </span>
+                    </div>
+                    <input type="number" id="klantwaarde" step="0.01" class="input-field" placeholder="Bijvoorbeeld 750" required>
                 </div>
-                <input type="number" id="klantwaarde" step="0.01" class="input-field" placeholder="Bijvoorbeeld 750" required>
-            </div>
 
-            <div>
-                <div class="input-label-container">
-                    <label for="seoInvestering" class="input-label">Geschatte maandelijkse SEO investering (€)</label>
-                    <span class="tooltip-icon">?
-                        <span class="tooltip-text">Hoeveel ben je van plan maandelijks te investeren in SEO (zoekmachineoptimalisatie)? Voor een klein lokaal bedrijf kan dit starten vanaf €250-€500, voor grotere MKB-bedrijven of in competitieve markten kan dit €1000-€5000+ zijn.</span>
-                    </span>
+                <div>
+                    <div class="input-label-container">
+                        <label for="seoInvestering" class="input-label">Geschatte maandelijkse SEO investering (€)</label>
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Hoeveel ben je van plan maandelijks te investeren in SEO (zoekmachineoptimalisatie)? Voor een klein lokaal bedrijf kan dit starten vanaf €250-€500, voor grotere MKB-bedrijven of in competitieve markten kan dit €1000-€5000+ zijn.</span>
+                        </span>
+                    </div>
+                    <input type="number" id="seoInvestering" step="0.01" class="input-field" placeholder="Bijvoorbeeld 500" required>
                 </div>
-                <input type="number" id="seoInvestering" step="0.01" class="input-field" placeholder="Bijvoorbeeld 500" required>
-            </div>
 
-            <button type="button" id="calculateBtn" class="base-button calculate-button">Bereken ROI</button>
-        </form>
+                <button type="button" id="calculateBtn" class="base-button calculate-button">Bereken ROI</button>
+            </form>
+        </div>
 
-        <div id="results" class="results-container hidden mt-4"> 
-            <h2 class="text-xl font-semibold text-gray-700 mb-3" style="font-weight: 700;">Geschatte resultaten:</h2>
-            <div class="result-item">
-                <span class="result-label">Geschatte maandelijkse bezoekers via SEO:</span>
-                <span id="resBezoekers" class="result-value"></span>
+        <div id="results" class="results-container hidden"> 
+            <div class="content-wrapper"> <h2 class="text-xl font-semibold text-gray-700 mb-3" style="font-weight: 700;">Geschatte resultaten:</h2>
+                <div class="result-item">
+                    <span class="result-label">Geschatte maandelijkse bezoekers via SEO:</span>
+                    <span id="resBezoekers" class="result-value"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Geschatte maandelijkse nieuwe klanten via SEO:</span>
+                    <span id="resKlanten" class="result-value"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Geschatte maandelijkse omzet via SEO:</span>
+                    <span id="resOmzet" class="result-value"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Netto winst/verlies via SEO:</span>
+                    <span id="resWinst" class="result-value"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Return on investment (ROI):</span>
+                    <span id="resROI" class="result-value roi"></span>
+                </div>
+                <button type="button" id="interpretROIBtn" class="base-button gemini-button gemini-button-roi mt-3 w-full">💡 Interpreteer ROI resultaat</button>
+                <div id="roiInterpretationLoading" class="loading-indicator hidden">Laden van ROI interpretatie...</div>
+                <div id="roiInterpretation" class="gemini-response hidden"></div>
             </div>
-            <div class="result-item">
-                <span class="result-label">Geschatte maandelijkse nieuwe klanten via SEO:</span>
-                <span id="resKlanten" class="result-value"></span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Geschatte maandelijkse omzet via SEO:</span>
-                <span id="resOmzet" class="result-value"></span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Netto winst/verlies via SEO:</span>
-                <span id="resWinst" class="result-value"></span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Return on investment (ROI):</span>
-                <span id="resROI" class="result-value roi"></span>
-            </div>
-            <button type="button" id="interpretROIBtn" class="base-button gemini-button gemini-button-roi mt-3 w-full">💡 Interpreteer ROI resultaat</button>
-            <div id="roiInterpretationLoading" class="loading-indicator hidden">Laden van ROI interpretatie...</div>
-            <div id="roiInterpretation" class="gemini-response hidden"></div>
         </div>
     </div>
 
