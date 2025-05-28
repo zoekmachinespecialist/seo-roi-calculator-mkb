@@ -3,17 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEO ROI calculator (Embed-vriendelijk)</title>
+    <title>SEO ROI calculator voor Totaal Zoekvolume</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Scoped body styles for the context of the calculator, if absolutely needed outside the container, though generally better to avoid */
-        /* For example, if the calculator is the only thing on a blank test page: */
-        /*
-        body.calculator-embed-page { 
+        /* Voeg hier de @font-face regels voor Ambit toe als je die hebt */
+        /* Bijvoorbeeld:
+        @font-face {
+            font-family: 'Ambit'; 
+            src: url('fonts/Ambit-Regular.woff2') format('woff2'), 
+                 url('fonts/Ambit-Regular.woff') format('woff');  
+            font-weight: normal; 
+            font-style: normal;
+            font-display: swap; 
+        }
+        @font-face {
+            font-family: 'Ambit';
+            src: url('fonts/Ambit-Bold.woff2') format('woff2'), 
+                 url('fonts/Ambit-Bold.woff') format('woff');
+            font-weight: bold; 
+            font-style: normal;
+            font-display: swap;
+        }
+        */
+
+        body { /* Stijl voor standalone testpagina, kan worden verwijderd/aangepast bij embedden */
             font-family: 'Ambit', 'Syne', sans-serif;
             display: flex;
             justify-content: center;
@@ -23,23 +40,21 @@
             margin: 0;
             padding: 1rem 0; 
         }
-        */
-
         #roi-calculator-container {
-            font-family: 'Ambit', 'Syne', sans-serif; /* Font family applied directly to the container */
+            font-family: 'Ambit', 'Syne', sans-serif; /* Font family hier voorrang */
             width: 60vw; 
-            height: 90vh; 
+            height: 65vh; /* Aangepaste hoogte */
             max-width: 900px; 
             min-width: 350px; 
             background-color: white;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             padding: 1.5rem 2rem; 
-            overflow-y: auto;
+            overflow-y: auto; /* Scrollen indien content niet past */
             display: flex;
             flex-direction: column;
         }
-        /* Custom scrollbar for calculator container */
+        /* Custom scrollbar */
         #roi-calculator-container::-webkit-scrollbar {
             width: 8px;
         }
@@ -216,10 +231,8 @@
             padding-left: 1.5rem;
         }
 
-        /* Styles for the custom alert, ensuring they are scoped if possible, or very specific */
-        /* If #customAlertModal is appended to body, scoping with #roi-calculator-container won't work for the modal itself */
-        /* However, its contents can reference the calculator's font if the modal is created by the calculator's script. */
-        #customAlertModal { /* This ID is global if appended to body */
+        /* Styles for the custom alert */
+        #customAlertModal { 
             position: fixed;
             left: 0;
             top: 0;
@@ -231,7 +244,7 @@
             align-items: center;
             z-index: 1000; 
         }
-         #customAlertModalContent { /* Give the content a specific ID to style */
+         #customAlertModalContent { 
             font-family: 'Ambit', 'Syne', sans-serif; 
             background-color: white;
             padding: 25px; 
@@ -256,8 +269,6 @@
             font-size: 0.9rem;
             font-family: 'Ambit', 'Syne', sans-serif;
         }
-
-
     </style>
 </head>
 <body>
@@ -351,12 +362,11 @@
     </div>
 
     <script>
-    (function() { // Start of IIFE to encapsulate the script
+    (function() { 
 
-        // Tooltip initialization
-        const tooltipIcons = document.querySelectorAll('#roi-calculator-container .tooltip-icon'); // Scoped selector
+        const tooltipIcons = document.querySelectorAll('#roi-calculator-container .tooltip-icon'); 
         tooltipIcons.forEach(icon => {
-            const tooltipText = icon.querySelector('.tooltip-text'); // Already scoped by icon
+            const tooltipText = icon.querySelector('.tooltip-text'); 
             if (tooltipText) {
                 icon.addEventListener('mouseenter', () => {
                     tooltipText.style.visibility = 'visible';
@@ -369,7 +379,6 @@
             }
         });
         
-        // Custom Alert Modal
         function showCustomAlert(message) {
             let modal = document.getElementById('customAlertModal');
             if (!modal) {
@@ -377,10 +386,9 @@
                 modal.id = 'customAlertModal';
                 
                 const modalContent = document.createElement('div');
-                modalContent.id = 'customAlertModalContent'; // Added ID for styling
+                modalContent.id = 'customAlertModalContent'; 
 
                 const modalMessage = document.createElement('p');
-                // modalMessage.id = 'customAlertMessage'; // Not strictly needed if only one message p
                 modalMessage.textContent = message;
 
                 const closeButton = document.createElement('button');
@@ -392,18 +400,13 @@
                 modalContent.appendChild(modalMessage);
                 modalContent.appendChild(closeButton);
                 modal.appendChild(modalContent);
-                // It's generally better to append the modal to the calculator container itself if possible,
-                // or to the body if it needs to overlay everything.
-                // If appended to body, its styles are global unless very specific.
                 document.body.appendChild(modal);
             }
-            // If modal exists, just update message and display
             const existingModalMessage = modal.querySelector('#customAlertModalContent p');
             if(existingModalMessage) existingModalMessage.textContent = message;
             modal.style.display = 'flex';
         }
 
-        // Gemini API call helper function
         async function callGeminiAPI(prompt) {
             // WARNING: Hardcoding API keys in client-side code is a major security risk.
             const apiKey = "AIzaSyBJfJf3jb87FwpLrmCU0y3kkDZ2MjnL75U"; 
@@ -438,8 +441,7 @@
             }
         }
 
-        // DOM Elements (get them once if they are static within the IIFE's scope)
-        const roiCalculatorNode = document.getElementById('roi-calculator-container'); // Get the main container
+        const roiCalculatorNode = document.getElementById('roi-calculator-container'); 
         
         const getKeywordsBtn = roiCalculatorNode.querySelector('#getKeywordsBtn');
         const basisZoekwoordInput = roiCalculatorNode.querySelector('#basisZoekwoord');
@@ -465,7 +467,6 @@
         const roiInterpretationDiv = roiCalculatorNode.querySelector('#roiInterpretation');
 
 
-        // Feature 1: Keyword Suggestions
         if (getKeywordsBtn) {
             getKeywordsBtn.addEventListener('click', async () => {
                 const basisZoekwoord = basisZoekwoordInput.value.trim();
@@ -509,7 +510,6 @@
             });
         }
 
-        // ROI Calculation Logic
         if (calculateBtn) {
             calculateBtn.addEventListener('click', function() {
                 const zoekvolume = parseFloat(zoekvolumeInput.value) || 0; 
@@ -559,7 +559,6 @@
             });
         }
 
-        // Feature 2: ROI Interpretation
         if (interpretROIBtn) {
             interpretROIBtn.addEventListener('click', async () => {
                 const roiText = resROISpan.textContent;
@@ -598,7 +597,7 @@
             });
         }
 
-    })(); // End of IIFE
+    })(); 
     </script>
 </body>
 </html>
