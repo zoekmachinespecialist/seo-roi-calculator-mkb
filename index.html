@@ -418,10 +418,16 @@
         }
 
         async function callGeminiAPI(prompt) {
-            const apiKey = "AIzaSyCWrcNAkUKgjIqptCXRuDeLfz1rUsuGekw"; // Jouw API sleutel
+            // ==========================================
+            // VUL HIER JE EIGEN API KEY IN:
+            // ==========================================
+            const apiKey = "VUL_HIER_JE_SLEUTEL_IN"; 
             
-            // Gebruik het nieuwste Flash 3.0 model
-            const model = "gemini-3.0-flash"; 
+            if (!apiKey || apiKey === "VUL_HIER_JE_SLEUTEL_IN") {
+                throw new Error("API-key niet ingesteld.");
+            }
+
+            const model = "gemini-2.5-flash-preview-09-2025";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             
             const payload = {
@@ -436,9 +442,7 @@
                             await new Promise(resolve => setTimeout(resolve, backoff));
                             return fetchWithRetry(url, options, retries - 1, backoff * 2);
                         }
-                        const errorText = await response.text();
-                        console.error("API Error details:", errorText);
-                        throw new Error(`API request failed with status ${response.status}`);
+                        throw new Error(`API error ${response.status}`);
                     }
                     return response;
                 } catch (error) {
@@ -457,7 +461,7 @@
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
-                return result.candidates?.[0]?.content?.parts?.[0]?.text || "Geen antwoord ontvangen.";
+                return result.candidates?.[0]?.content?.parts?.[0]?.text || "Geen antwoord.";
             } catch (error) {
                 console.error("AI Error:", error);
                 throw error;
@@ -491,11 +495,7 @@
                     keywordSuggestionsDiv.textContent = res;
                     keywordSuggestionsDiv.classList.remove('hidden');
                 } catch (e) {
-                    if (e.message.includes("403")) {
-                        showCustomAlert("Toegang geweigerd (403). Controleer of 'zoekmachinespecialist.com' is toegestaan in de Google Cloud Console API-instellingen.");
-                    } else {
-                        showCustomAlert("Er ging iets mis met de AI-verbinding. Probeer het later opnieuw.");
-                    }
+                    showCustomAlert("AI-functie werkt niet zonder geldige API-key.");
                 } finally {
                     keywordLoading.classList.add('hidden');
                 }
@@ -537,11 +537,7 @@
                     roiInterpretationDiv.textContent = res;
                     roiInterpretationDiv.classList.remove('hidden');
                 } catch (e) {
-                    if (e.message.includes("403")) {
-                        showCustomAlert("Toegang geweigerd (403). Controleer de API-instellingen voor dit domein.");
-                    } else {
-                        showCustomAlert("Interpretatie mislukt. Controleer de verbinding.");
-                    }
+                    showCustomAlert("AI-functie werkt niet zonder geldige API-key.");
                 } finally {
                     roiInterpretationLoading.classList.add('hidden');
                 }
