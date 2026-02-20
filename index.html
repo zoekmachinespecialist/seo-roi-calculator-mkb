@@ -423,11 +423,11 @@
             // ==========================================
             const apiKey = "AIzaSyCBpidEy4j1uTJ1FSOflMPzTDFK9P5pV2s"; 
             
-            if (!apiKey || apiKey === "AIzaSyCBpidEy4j1uTJ1FSOflMPzTDFK9P5pV2s") {
+            if (!apiKey) {
                 throw new Error("API-key niet ingesteld.");
             }
 
-            const model = "gemini-3-flash-preview";
+            const model = "gemini-2.0-flash";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             
             const payload = {
