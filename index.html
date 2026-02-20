@@ -427,7 +427,7 @@
                 throw new Error("API-key niet ingesteld.");
             }
 
-            const model = "gemini-2.0-flash";
+            const model = "gemini-3-flash-preview";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             
             const payload = {
